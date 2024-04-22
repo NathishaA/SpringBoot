@@ -4,7 +4,12 @@ import com.java.rs.model.Stock;
 import com.java.rs.repository.StockRepo;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -44,4 +49,20 @@ public class StockService {
         stockRepo.deleteById(id);
         return true;
     }
+
+    public Page<Stock> getAllStocks(Pageable pageable) {
+        return stockRepo.findAll(pageable);
+    }
+
+    public Page<Stock> getAllStocksSorted(String sortBy, Pageable pageable) {
+        Sort sort = Sort.by(sortBy);
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        return stockRepo.findAll(pageable);
+    }
 }
+
+
+
+
+
+

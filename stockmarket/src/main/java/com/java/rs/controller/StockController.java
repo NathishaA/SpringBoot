@@ -3,11 +3,15 @@ package com.java.rs.controller;
 import com.java.rs.model.Stock;
 import com.java.rs.service.StockService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+
 
 @RestController
 @RequestMapping("/api")
@@ -17,7 +21,7 @@ public class StockController {
     private StockService stockService;
 
     @PostMapping("/stock")
-    public ResponseEntity<Stock> add(@RequestBody Stock stock) {
+    public ResponseEntity<Stock> addStock(@RequestBody Stock stock) {
         Stock newStock = stockService.createStock(stock);
         if (newStock != null) {
             return new ResponseEntity<>(newStock, HttpStatus.CREATED);
@@ -27,16 +31,37 @@ public class StockController {
     }
 
     @GetMapping("/stocks")
-    public ResponseEntity<List<Stock>> getAllStocks() {
-        List<Stock> stocks = stockService.getAllStocks();
-        if (!stocks.isEmpty()) {
+    public ResponseEntity<Page<Stock>> getAllStocks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<Stock> stocks = stockService.getAllStocks(pageable);
+
+        if (stocks.hasContent()) {
             return new ResponseEntity<>(stocks, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    
+    @GetMapping("/stocks/sorted")
+    public ResponseEntity<Page<Stock>> getAllStocksSorted(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Stock> stocks = stockService.getAllStocksSorted(sortBy, pageable);
+        if (stocks.hasContent()) {
+            return new ResponseEntity<>(stocks, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @PutMapping("/stock/{stockId}")
     public ResponseEntity<Stock> updateStock(@PathVariable int stockId, @RequestBody Stock stock) {
         boolean updated = stockService.updateStock(stockId, stock);
@@ -57,3 +82,11 @@ public class StockController {
         }
     }
 }
+
+
+
+
+
+
+
+
